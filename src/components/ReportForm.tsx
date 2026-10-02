@@ -28,7 +28,7 @@ function Section({ n, title, sub, done, children }: { n: number; title: string; 
   );
 }
 
-function Field({ icon: Icon, label, error, children }: { icon: LucideIcon; label: string; error?: string; children: React.ReactNode }) {
+function Field({ icon: Icon, label, error, children }: { icon: LucideIcon; label: string; error?: string | undefined; children: React.ReactNode }) {
   return (
     <label className="block">
       <span className="label-cap">{label}</span>
@@ -49,7 +49,7 @@ export function ReportForm({ kind }: { kind: ItemKind }) {
   const [form, setForm] = useState({ name: "", category: "Other", description: "", location: "", item_date: today, contact: "" });
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Partial<Record<"name"|"description"|"location"|"item_date"|"contact"|"image", string>>>({});
   const [busy, setBusy] = useState(false);
   const [fail, setFail] = useState("");
 
@@ -65,7 +65,7 @@ export function ReportForm({ kind }: { kind: ItemKind }) {
     if (!parsed.success) {
       const errs: Record<string, string> = {};
       parsed.error.issues.forEach((i) => { errs[String(i.path[0])] = i.message; });
-      setErrors(errs);
+      setErrors(errs as typeof errors);
       return;
     }
     if (parsed.data.item_date > today) { setErrors({ item_date: "Date can't be in the future" }); return; }
@@ -107,7 +107,7 @@ export function ReportForm({ kind }: { kind: ItemKind }) {
           <span className="label-cap">Category</span>
           <div className="mt-1.5 grid grid-cols-2 sm:grid-cols-4 gap-2">
             {CATEGORIES.map((c) => {
-              const Icon = CATEGORY_ICON[c];
+              const Icon = CATEGORY_ICON[c] ?? Tag;
               const on = form.category === c;
               return (
                 <button type="button" key={c} onClick={() => setForm((f) => ({ ...f, category: c }))}
