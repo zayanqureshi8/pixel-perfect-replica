@@ -5,8 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-display: "Bricolage Grotesque", sans-serif;
-  --font-sans: "Instrument Sans", sans-serif;
+  --font-display: "Sora", sans-serif;
+  --font-sans: "Manrope", sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -40,18 +40,22 @@
   --color-grass: var(--grass);
   --color-violet: var(--violet);
   --color-on-color: var(--on-color);
+  --color-lost: var(--coral);
+  --color-found: var(--grass);
+  --color-brand: var(--sky);
+  --color-navy: var(--ink);
 }
 
 :root {
   --radius: 0.75rem;
-  --ink: oklch(0.24 0.02 265);
-  --paper: oklch(0.979 0.009 85);
-  --cream: oklch(0.935 0.017 85);
-  --coral: oklch(0.68 0.21 34);
-  --sky: oklch(0.57 0.23 264);
-  --sun: oklch(0.85 0.17 82);
-  --grass: oklch(0.68 0.16 155);
-  --violet: oklch(0.58 0.23 285);
+  --ink: oklch(0.22 0.06 265);
+  --paper: oklch(0.985 0.006 255);
+  --cream: oklch(0.955 0.014 255);
+  --coral: oklch(0.7 0.17 50);
+  --sky: oklch(0.52 0.2 262);
+  --sun: oklch(0.8 0.15 75);
+  --grass: oklch(0.62 0.12 180);
+  --violet: oklch(0.42 0.17 268);
   --on-color: oklch(1 0 0);
 
   --background: var(--paper);
@@ -119,3 +123,30 @@
 
 @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @utility animate-rise { animation: rise 450ms cubic-bezier(0.32, 0.72, 0, 1) both; }
+
+@utility glass {
+  background: color-mix(in oklab, white 72%, transparent);
+  backdrop-filter: blur(16px) saturate(1.4);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--ink) 7%, transparent), 0 20px 50px -24px color-mix(in oklab, var(--sky) 35%, transparent);
+}
+@utility soft-card {
+  background: white;
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--ink) 6%, transparent), 0 12px 32px -20px color-mix(in oklab, var(--ink) 30%, transparent);
+}
+@utility bg-hero {
+  background:
+    radial-gradient(900px 500px at 85% 0%, color-mix(in oklab, var(--sky) 18%, transparent), transparent 60%),
+    radial-gradient(700px 400px at 0% 30%, color-mix(in oklab, var(--grass) 12%, transparent), transparent 60%),
+    var(--paper);
+}
+@utility bg-navy-grad {
+  background: radial-gradient(600px 300px at 90% 0%, color-mix(in oklab, var(--sky) 55%, transparent), transparent 70%), linear-gradient(135deg, var(--ink), var(--violet));
+}
+@utility text-grad {
+  background: linear-gradient(100deg, var(--sky), var(--grass));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+@keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+@utility animate-float { animation: floaty 6s ease-in-out infinite; }
+@keyframes pop { 0% { transform: scale(.6); opacity: 0; } 60% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); } }
+@utility animate-pop { animation: pop 600ms cubic-bezier(0.32, 0.72, 0, 1) both; }
