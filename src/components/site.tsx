@@ -1,15 +1,15 @@
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, memo } from "react";
 import {
-  ArrowRight, Calendar, CheckCircle2, CircleDashed, IdCard, Wallet, Laptop, BookOpen, Backpack,
-  KeyRound, GlassWater, Package, MapPin, Menu, X, Search, type LucideIcon,
+  ArrowRight, Calendar, CheckCircle2, CircleDashed, CreditCard, WalletCards, Smartphone, BookOpen, Backpack,
+  KeyRound, Milk, Package, MapPin, Menu, X, Search, ClipboardPlus, PackageCheck, Sparkles, type LucideIcon,
 } from "lucide-react";
 import type { Item, Match } from "@/lib/items";
 import { relativeDay } from "@/lib/items";
 
 export const CATEGORY_ICON: Record<string, LucideIcon> = {
-  "ID Card": IdCard, Wallet, Electronics: Laptop, Books: BookOpen, Bag: Backpack,
-  Keys: KeyRound, "Water Bottle": GlassWater, Other: Package,
+  "ID Card": CreditCard, Wallet: WalletCards, Electronics: Smartphone, Books: BookOpen, Bag: Backpack,
+  Keys: KeyRound, "Water Bottle": Milk, Other: Package,
 };
 
 export function Logo() {
@@ -25,22 +25,22 @@ export function Logo() {
 }
 
 const NAV = [
-  { to: "/browse", label: "Browse" },
-  { to: "/report-lost", label: "Report Lost" },
-  { to: "/report-found", label: "Report Found" },
-  { to: "/matches", label: "My Matches" },
+  { to: "/browse", label: "Browse", icon: Search },
+  { to: "/report-lost", label: "Report Lost", icon: ClipboardPlus },
+  { to: "/report-found", label: "Report Found", icon: PackageCheck },
+  { to: "/matches", label: "My Matches", icon: Sparkles },
 ] as const;
 
 export function Header() {
   const [open, setOpen] = useState(false);
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-paper/75 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-border bg-paper/90 backdrop-blur-md">
       <div className="max-w-6xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between gap-6">
         <Logo />
         <nav className="hidden md:flex items-center gap-1 text-sm font-semibold text-ink/60">
           {NAV.map((n) => (
-            <Link key={n.to} to={n.to} className="rounded-full px-3.5 py-2 hover:text-ink hover:bg-cream transition-colors"
-              activeProps={{ className: "text-ink bg-cream" }}>{n.label}</Link>
+            <Link key={n.to} to={n.to} className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 hover:text-ink hover:bg-cream transition-colors"
+              activeProps={{ className: "text-ink bg-cream" }}><n.icon className="size-4" />{n.label}</Link>
           ))}
         </nav>
         <div className="flex items-center gap-2">
@@ -55,8 +55,8 @@ export function Header() {
       {open && (
         <nav className="md:hidden animate-rise border-t border-border px-5 py-3 flex flex-col gap-1 bg-paper">
           {NAV.map((n) => (
-            <Link key={n.to} to={n.to} onClick={() => setOpen(false)} className="rounded-xl px-3 py-2.5 font-semibold hover:bg-cream"
-              activeProps={{ className: "bg-cream" }}>{n.label}</Link>
+            <Link key={n.to} to={n.to} onClick={() => setOpen(false)} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 font-semibold hover:bg-cream"
+              activeProps={{ className: "bg-cream" }}><n.icon className="size-4 text-brand" />{n.label}</Link>
           ))}
           <Link to="/report-lost" onClick={() => setOpen(false)} className="pill mt-2 justify-center bg-ink px-4 py-2.5 text-sm text-on-color">Report an Item</Link>
         </nav>
@@ -107,8 +107,7 @@ export function KindBadge({ kind, className = "" }: { kind: string; className?: 
   );
 }
 
-export function Thumb({ item, className, iconSize = "size-10" }: { item: Item; className: string; iconSize?: string }) {
-  if (item.image_url) return <img src={item.image_url} alt={item.name} loading="lazy" className={`${className} object-cover`} />;
+export function CategoryFallback({ item, className, iconSize = "size-10" }: { item: Pick<Item, "category" | "kind">; className: string; iconSize?: string }) {
   const Icon = CATEGORY_ICON[item.category] ?? Package;
   const found = item.kind === "found";
   return (
@@ -118,32 +117,51 @@ export function Thumb({ item, className, iconSize = "size-10" }: { item: Item; c
   );
 }
 
-export function ItemCard({ item, i = 0, score }: { item: Item; i?: number; score?: number }) {
+/** Fixed-ratio container: images never stretch, overflow, or shift layout; broken images fall back to an icon. */
+export function Thumb({ item, className, iconSize = "size-10", fit = "cover", eager }: { item: Item; className: string; iconSize?: string; fit?: "cover" | "contain"; eager?: boolean }) {
+  const [broken, setBroken] = useState(false);
+  if (!item.image_url || broken) return <CategoryFallback item={item} className={className} iconSize={iconSize} />;
+  return (
+    <div className={`${className} overflow-hidden bg-cream`}>
+      <img src={item.image_url} alt={item.name} loading={eager ? "eager" : "lazy"} decoding="async" onError={() => setBroken(true)}
+        className={`size-full ${fit === "contain" ? "object-contain" : "object-cover"}`} />
+    </div>
+  );
+}
+
+export function StatusBadge({ status }: { status: string }) {
+  if (status === "returned") return <span className="inline-flex items-center gap-1 rounded-full bg-found px-2.5 py-1 text-[11px] font-bold text-on-color"><CheckCircle2 className="size-3.5" />Returned</span>;
+  if (status === "awaiting_verification" || status === "handover_requested") return <span className="rounded-full bg-sun px-2.5 py-1 text-[11px] font-bold text-ink">Handover pending</span>;
+  return null;
+}
+
+export const ItemCard = memo(function ItemCard({ item, i = 0, score }: { item: Item; i?: number; score?: number }) {
   return (
     <Link to="/items/$id" params={{ id: item.id }}
-      className="animate-rise group soft-card rounded-2xl overflow-hidden flex flex-col hover:-translate-y-1 hover:shadow-xl transition-all duration-300"
-      style={{ animationDelay: `${Math.min(i, 8) * 50}ms` }}>
-      <div className="relative overflow-hidden">
-        <Thumb item={item} className="w-full aspect-[4/3] group-hover:scale-[1.03] transition-transform duration-500" />
-        <KindBadge kind={item.kind} className="absolute left-3 top-3 bg-card/90 backdrop-blur" />
-        {score !== undefined && (
-          <span className="absolute right-3 top-3 rounded-full bg-ink/85 backdrop-blur px-2.5 py-1 text-[11px] font-bold text-on-color">{score}% match</span>
-        )}
+      className="animate-rise group soft-card rounded-3xl p-2.5 flex flex-col min-w-0 hover:-translate-y-1 hover:shadow-xl transition-[transform,box-shadow] duration-300"
+      style={{ animationDelay: `${Math.min(i, 6) * 40}ms` }}>
+      <div className="relative">
+        <Thumb item={item} className="w-full aspect-[4/3] rounded-2xl" />
+        <KindBadge kind={item.kind} className="absolute left-3 top-3 bg-card/95" />
+        <div className="absolute right-3 top-3 flex gap-1.5">
+          <StatusBadge status={item.status} />
+          {score !== undefined && <span className="rounded-full bg-ink/85 px-2.5 py-1 text-[11px] font-bold text-on-color">{score}% match</span>}
+        </div>
       </div>
-      <div className="p-4 flex-1 flex flex-col">
+      <div className="px-2.5 pt-3.5 pb-2 flex-1 flex flex-col">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-ink/40">{item.category}</p>
         <h3 className="mt-1 font-display font-semibold truncate">{item.name}</h3>
         <div className="mt-2.5 space-y-1 text-[13px] text-ink/55">
           <p className="flex items-center gap-1.5 truncate"><MapPin className="size-3.5 shrink-0" />{item.location}</p>
           <p className="flex items-center gap-1.5"><Calendar className="size-3.5 shrink-0" />{item.kind === "found" ? "Found" : "Lost"} {relativeDay(item.item_date)}</p>
         </div>
-        <span className="mt-4 pt-3 border-t border-border flex items-center justify-between text-sm font-semibold text-brand">
-          View details <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
+        <span className="mt-4 flex items-center justify-between rounded-xl bg-cream px-3.5 py-2.5 text-sm font-semibold text-ink group-hover:bg-brand group-hover:text-on-color transition-colors">
+          View Details <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
         </span>
       </div>
     </Link>
   );
-}
+});
 
 export function scoreTone(score: number) {
   if (score >= 70) return { label: "High confidence", bar: "bg-found", text: "text-found", ring: "var(--grass)" };

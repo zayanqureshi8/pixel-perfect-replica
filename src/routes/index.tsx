@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { Reviews } from "@/components/Reviews";
 import { ArrowRight, ClipboardList, Sparkles, Handshake, Inbox, Link2, PackageCheck, MapPin, ShieldCheck } from "lucide-react";
 import hero from "@/assets/hero-campus.png";
 import { PageShell, ItemCard } from "@/components/site";
@@ -59,13 +60,13 @@ function Home() {
 
           <div className="lg:col-span-6 relative">
             <div className="absolute inset-10 rounded-full bg-brand/20 blur-3xl" />
-            <img src={hero} alt="Illustration of a campus lost and found kiosk surrounded by items" width={1024} height={1024} className="relative w-full max-w-[540px] mx-auto animate-float" />
-            {latest[0] && <FloatCard item={latest[0]} className="left-0 top-[12%]" delay="0s" />}
-            {latest[1] && <FloatCard item={latest[1]} className="right-0 bottom-[14%]" delay="1.5s" />}
+            <img src={hero} alt="Illustration of a campus lost and found kiosk surrounded by items" width={1024} height={1024} fetchPriority="high" className="relative w-full max-w-[540px] mx-auto aspect-square" />
+            {latest[0] && <FloatCard item={latest[0]} className="left-0 top-[12%]" delay="200ms" />}
+            {latest[1] && <FloatCard item={latest[1]} className="right-0 bottom-[14%]" delay="350ms" />}
             {!latest.length && (
-              <div className="glass absolute right-2 bottom-[12%] rounded-2xl px-4 py-3 animate-float" style={{ animationDelay: "1s" }}>
-                <p className="text-xs font-semibold text-ink/50">Match found</p>
-                <p className="font-display font-bold text-found">92% · Same location</p>
+              <div className="glass absolute right-2 bottom-[12%] rounded-2xl px-4 py-3">
+                <p className="text-xs font-semibold text-ink/50">How matches are scored</p>
+                <p className="font-display font-bold text-found">Same location · Similar date</p>
               </div>
             )}
           </div>
@@ -93,7 +94,7 @@ function Home() {
           {[
             { icon: ClipboardList, t: "Report it", d: "Describe the item, where and when — add a photo if you have one." },
             { icon: Sparkles, t: "Get matched", d: "We score every opposite report on category, location, date and description." },
-            { icon: Handshake, t: "Reconnect", d: "Open a match, see exactly why it fits, and contact the other person." },
+            { icon: Handshake, t: "Verified handover", d: "The finder confirms the owner with a one-time code before handing the item back." },
           ].map((s, i) => (
             <div key={s.t} className="soft-card relative rounded-2xl p-6 overflow-hidden">
               <span className="absolute right-5 top-3 font-display text-7xl font-extrabold text-cream">{i + 1}</span>
@@ -133,6 +134,8 @@ function Home() {
         )}
       </section>
 
+      <Reviews />
+
       {/* CTA */}
       <section className="max-w-6xl mx-auto px-5 sm:px-8 pt-20">
         <div className="bg-navy-grad relative overflow-hidden rounded-3xl px-7 py-12 sm:px-12 sm:py-16 text-on-color">
@@ -156,7 +159,7 @@ function Home() {
 function FloatCard({ item, className, delay }: { item: { name: string; kind: string; location: string }; className: string; delay: string }) {
   const found = item.kind === "found";
   return (
-    <div className={`glass absolute hidden sm:flex items-center gap-3 rounded-2xl px-4 py-3 max-w-[230px] animate-float ${className}`} style={{ animationDelay: delay }}>
+    <div className={`glass absolute hidden sm:flex items-center gap-3 rounded-2xl px-4 py-3 max-w-[230px] animate-rise ${className}`} style={{ animationDelay: delay }}>
       <span className={`size-9 shrink-0 rounded-xl grid place-items-center ${found ? "bg-found/15 text-found" : "bg-lost/15 text-lost"}`}><MapPin className="size-4" /></span>
       <div className="min-w-0">
         <p className={`text-[10px] font-bold uppercase tracking-wider ${found ? "text-found" : "text-lost"}`}>{found ? "Just found" : "Just lost"}</p>
