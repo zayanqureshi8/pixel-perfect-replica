@@ -45,6 +45,37 @@ export function getMyReportIds(): string[] {
   if (typeof window === "undefined") return [];
   try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch { return []; }
 }
+const TOK = "campusfind:tokens";
+export function getItemToken(id: string): string | null {
+  if (typeof window === "undefined") return null;
+  try { return (JSON.parse(localStorage.getItem(TOK) || "{}") as Record<string, string>)[id] ?? null; } catch { return null; }
+}
+export function saveItemToken(id: string, token: string) {
+  let m: Record<string, string> = {};
+  try { m = JSON.parse(localStorage.getItem(TOK) || "{}"); } catch { /* reset corrupt store */ }
+  m[id] = token;
+  localStorage.setItem(TOK, JSON.stringify(m));
+}
+
+/** Downscale large photos in the browser before upload (keeps aspect ratio). */
+export async function resizeImage(file: File, max = 1600): Promise<File> {
+  if (!file.type.startsWith("image/") || file.type === "image/gif") return file;
+  try {
+    const bmp = await createImageBitmap(file);
+    const scale = Math.min(1, max / Math.max(bmp.width, bmp.height));
+    if (scale === 1 && file.size < 1.5 * 1024 * 1024) { bmp.close(); return file; }
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bmp.width * scale); canvas.height = Math.round(bmp.height * scale);
+    canvas.getContext("2d")!.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+    bmp.close();
+    const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/jpeg", 0.85));
+    return blob ? new File([blob], file.name.replace(/\.\w+$/, "") + ".jpg", { type: "image/jpeg" }) : file;
+  } catch (err) {
+    console.warn("Image resize skipped:", err);
+    return file;
+  }
+}
+
 export function addMyReportId(id: string) {
   const ids = getMyReportIds().filter((x) => x !== id);
   localStorage.setItem(KEY, JSON.stringify([id, ...ids]));
