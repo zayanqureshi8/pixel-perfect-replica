@@ -8,6 +8,13 @@
       "when": 1790944345055,
       "tag": "0000_create_items",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791009112677,
+      "tag": "0001_handover_otp",
+      "breakpoints": true
     }
   ]
 }

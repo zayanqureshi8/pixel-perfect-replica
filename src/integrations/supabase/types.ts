@@ -14,6 +14,95 @@ export type Database = {
   }
   public: {
     Tables: {
+      handovers: {
+        Row: {
+          attempts: number
+          created_at: string
+          found_item_id: string
+          id: string
+          lost_item_id: string
+          match_score: number
+          max_attempts: number
+          otp_cipher: string | null
+          otp_expires_at: string | null
+          otp_hash: string | null
+          status: string
+          updated_at: string
+          used_at: string | null
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          found_item_id: string
+          id?: string
+          lost_item_id: string
+          match_score: number
+          max_attempts?: number
+          otp_cipher?: string | null
+          otp_expires_at?: string | null
+          otp_hash?: string | null
+          status?: string
+          updated_at?: string
+          used_at?: string | null
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          found_item_id?: string
+          id?: string
+          lost_item_id?: string
+          match_score?: number
+          max_attempts?: number
+          otp_cipher?: string | null
+          otp_expires_at?: string | null
+          otp_hash?: string | null
+          status?: string
+          updated_at?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "handovers_found_item_id_fkey"
+            columns: ["found_item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "handovers_lost_item_id_fkey"
+            columns: ["lost_item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      item_secrets: {
+        Row: {
+          created_at: string
+          item_id: string
+          token_hash: string
+        }
+        Insert: {
+          created_at?: string
+          item_id: string
+          token_hash: string
+        }
+        Update: {
+          created_at?: string
+          item_id?: string
+          token_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_secrets_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: true
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       items: {
         Row: {
           category: string
@@ -26,6 +115,7 @@ export type Database = {
           kind: Database["public"]["Enums"]["item_kind"]
           location: string
           name: string
+          status: string
         }
         Insert: {
           category: string
@@ -38,6 +128,7 @@ export type Database = {
           kind: Database["public"]["Enums"]["item_kind"]
           location: string
           name: string
+          status?: string
         }
         Update: {
           category?: string
@@ -50,6 +141,7 @@ export type Database = {
           kind?: Database["public"]["Enums"]["item_kind"]
           location?: string
           name?: string
+          status?: string
         }
         Relationships: []
       }
