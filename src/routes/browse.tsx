@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
+import { useState } from "react";
+import { Search, SlidersHorizontal, X } from "lucide-react";
 import { PageShell, ItemCard } from "@/components/site";
 import { CATEGORIES, fetchItems } from "@/lib/items";
 
@@ -43,6 +45,8 @@ function Browse() {
     (!s.to || i.item_date <= s.to) &&
     (!q || `${i.name} ${i.description} ${i.location} ${i.category}`.toLowerCase().includes(q)));
 
+  const [showFilters, setShowFilters] = useState(!!(s.category || s.location || s.from || s.to));
+  const activeCount = [s.category, s.location, s.from, s.to].filter(Boolean).length;
   const hasFilters = !!(s.q || (s.kind && s.kind !== "all") || s.category || s.location || s.from || s.to);
 
   return (
