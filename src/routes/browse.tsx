@@ -47,16 +47,30 @@ function Browse() {
 
   return (
     <PageShell>
-      <h1 className="text-4xl sm:text-5xl font-extrabold">Browse items</h1>
-      <div className="mt-6 rounded-2xl bg-card ring-1 ring-black/5 p-4 sm:p-5 space-y-4">
-        <input className="field !mt-0" placeholder="Search by name, description, place…" value={s.q ?? ""} onChange={(e) => update({ q: e.target.value || undefined })} />
-        <div className="flex flex-wrap gap-2">
-          {(["all", "lost", "found"] as const).map((k) => (
-            <button key={k} onClick={() => update({ kind: k === "all" ? undefined : k })}
-              className={`rounded-full px-4 py-1.5 text-sm font-medium capitalize transition-colors ${(s.kind ?? "all") === k ? "bg-ink text-on-color" : "bg-cream text-ink/70 ring-1 ring-black/5 hover:text-ink"}`}>{k}</button>
-          ))}
+      <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight">Browse items</h1>
+      <p className="mt-2 text-ink/55">Search every lost and found report on campus.</p>
+      <div className="mt-6 search-shell rounded-2xl p-[1.5px]">
+        <div className="flex items-center gap-2 rounded-[15px] bg-card pl-4 pr-2 py-2">
+          <Search className="size-5 text-brand shrink-0" />
+          <input aria-label="Search items" className="min-w-0 flex-1 bg-transparent py-2 text-[15px] outline-none placeholder:text-ink/40"
+            placeholder="Search by name, description, place…" value={s.q ?? ""} onChange={(e) => update({ q: e.target.value || undefined })} />
+          {s.q && <button aria-label="Clear search" onClick={() => update({ q: undefined })} className="size-8 grid place-items-center rounded-full hover:bg-cream"><X className="size-4" /></button>}
+          <button onClick={() => setShowFilters((v) => !v)} aria-expanded={showFilters}
+            className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold transition-colors ${showFilters ? "bg-ink text-on-color" : "bg-cream hover:bg-ink/10"}`}>
+            <SlidersHorizontal className="size-4" /><span className="hidden sm:inline">Filters</span>
+            {activeCount > 0 && <span className="rounded-full bg-brand px-1.5 text-[11px] text-on-color">{activeCount}</span>}
+          </button>
         </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      </div>
+      <div className="mt-4 flex flex-wrap gap-2">
+        {(["all", "lost", "found"] as const).map((k) => (
+          <button key={k} onClick={() => update({ kind: k === "all" ? undefined : k })}
+            className={`rounded-full px-4 py-1.5 text-sm font-semibold capitalize transition-colors ${(s.kind ?? "all") === k ? "bg-ink text-on-color" : "bg-cream text-ink/70 hover:text-ink"}`}>{k}</button>
+        ))}
+        {hasFilters && <button onClick={() => navigate({ search: {}, replace: true })} className="ml-auto text-sm font-semibold text-brand hover:underline">Clear all</button>}
+      </div>
+      {showFilters && (
+        <div className="animate-rise mt-4 soft-card rounded-2xl p-4 sm:p-5 grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <label><span className="label-cap">Category</span>
             <select className="field" value={s.category ?? ""} onChange={(e) => update({ category: e.target.value || undefined })}>
               <option value="">All categories</option>{CATEGORIES.map((c) => <option key={c}>{c}</option>)}
@@ -68,12 +82,12 @@ function Browse() {
           <label><span className="label-cap">To</span>
             <input type="date" className="field" value={s.to ?? ""} onChange={(e) => update({ to: e.target.value || undefined })} /></label>
         </div>
-        {hasFilters && <button onClick={() => navigate({ search: {}, replace: true })} className="text-sm font-semibold text-sky hover:underline">Clear filters</button>}
-      </div>
+      )}
 
       <p className="mt-6 text-sm text-ink/50">{isLoading ? "Loading…" : `${items.length} item${items.length === 1 ? "" : "s"}`}</p>
       {error && <p className="mt-4 text-destructive text-sm">Couldn't load items. Please refresh.</p>}
       <div className="mt-4 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {isLoading && [0, 1, 2].map((i) => <div key={i} className="rounded-3xl bg-cream aspect-[4/5] animate-pulse" />)}
         {items.map((it, i) => <ItemCard key={it.id} item={it} i={i} />)}
       </div>
       {!isLoading && items.length === 0 && (
