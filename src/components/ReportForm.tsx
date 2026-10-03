@@ -3,8 +3,9 @@ import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { Tag, MapPin, Calendar, AlignLeft, ImagePlus, Mail, Loader2, ArrowRight, X, AlertCircle, type LucideIcon } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { CATEGORIES, addMyReportId, uploadImage, type ItemKind } from "@/lib/items";
+import { useServerFn } from "@tanstack/react-start";
+import { createItem } from "@/lib/handover.functions";
+import { CATEGORIES, addMyReportId, saveItemToken, resizeImage, uploadImage, type ItemKind } from "@/lib/items";
 import { CATEGORY_ICON } from "@/components/site";
 
 const schema = z.object({
@@ -45,6 +46,7 @@ export function ReportForm({ kind }: { kind: ItemKind }) {
   const lost = kind === "lost";
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const create = useServerFn(createItem);
   const today = new Date().toISOString().slice(0, 10);
   const [form, setForm] = useState({ name: "", category: "Other", description: "", location: "", item_date: today, contact: "" });
   const [file, setFile] = useState<File | null>(null);
@@ -55,7 +57,7 @@ export function ReportForm({ kind }: { kind: ItemKind }) {
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setForm((f) => ({ ...f, [k]: e.target.value }));
-    if (errors[k]) setErrors((x) => ({ ...x, [k]: "" }));
+    if (k !== "category" && errors[k]) setErrors((x) => ({ ...x, [k]: "" }));
   };
 
   async function submit(e: React.FormEvent) {
@@ -72,9 +74,9 @@ export function ReportForm({ kind }: { kind: ItemKind }) {
     setErrors({});
     setBusy(true);
     try {
-      const image_url = file ? await uploadImage(file) : null;
-      const { data, error } = await supabase.from("items").insert({ ...parsed.data, kind, image_url }).select("id").single();
-      if (error) throw error;
+      const image_url = file ? await uploadImage(await resizeImage(file)) : null;
+      const data = await create({ data: { ...parsed.data, kind, image_url } });
+      saveItemToken(data.id, data.token);
       addMyReportId(data.id);
       qc.invalidateQueries({ queryKey: ["items"] });
       navigate({ to: "/items/$id", params: { id: data.id }, search: { new: true } });
@@ -139,7 +141,7 @@ export function ReportForm({ kind }: { kind: ItemKind }) {
           <span className="label-cap">Photo (optional)</span>
           {preview ? (
             <div className="relative mt-1.5 overflow-hidden rounded-xl">
-              <img src={preview} alt="Preview" className="w-full max-h-64 object-cover animate-pop" />
+              <div className="aspect-[4/3] bg-cream"><img src={preview} alt="Preview" className="size-full object-contain" /></div>
               <button type="button" aria-label="Remove photo" onClick={() => { setFile(null); setPreview(null); }}
                 className="absolute right-3 top-3 size-8 rounded-full glass grid place-items-center hover:scale-105 transition"><X className="size-4" /></button>
             </div>

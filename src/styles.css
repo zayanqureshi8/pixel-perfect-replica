@@ -150,3 +150,11 @@
 @utility animate-float { animation: floaty 6s ease-in-out infinite; }
 @keyframes pop { 0% { transform: scale(.6); opacity: 0; } 60% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); } }
 @utility animate-pop { animation: pop 600ms cubic-bezier(0.32, 0.72, 0, 1) both; }
+
+@utility search-shell {
+  background: linear-gradient(110deg, color-mix(in oklab, var(--sky) 45%, transparent), color-mix(in oklab, var(--violet) 35%, transparent), color-mix(in oklab, var(--grass) 45%, transparent));
+  background-size: 200% 100%;
+  transition: background-position 600ms ease, box-shadow 300ms;
+  box-shadow: 0 12px 30px -18px color-mix(in oklab, var(--sky) 50%, transparent);
+  &:focus-within { background-position: 100% 0; box-shadow: 0 14px 36px -14px color-mix(in oklab, var(--sky) 60%, transparent); }
+}
